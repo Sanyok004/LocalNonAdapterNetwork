@@ -4,7 +4,6 @@ import javax.comm.*;
 import  java.util.*;
 
 public class Main {
-
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter port name: ");
@@ -21,8 +20,6 @@ public class Main {
             System.out.println("Port not found.");
             return;
         }
-        //new Terminal(portId, scanner);
-        byte STARTBYTE = Byte.valueOf("11111111", 2);
-        System.out.println(STARTBYTE);
+        new Terminal(portId, scanner);
     }
 }

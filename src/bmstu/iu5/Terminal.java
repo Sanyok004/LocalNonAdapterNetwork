@@ -45,7 +45,7 @@ public class Terminal implements Runnable, SerialPortEventListener {
             while (true) {
                 System.out.print("> ");
                 String line = scanner.nextLine();
-                Frame frame = new Frame((byte)0, 1, 2, line);
+                Frame frame = new Frame((byte)0, (byte)1, (byte)2, line);
                 if (line.equals("exit")) System.exit(1);
                 outputStream.write(frame.getBytes());
                 outputStream.flush();
@@ -79,7 +79,24 @@ public class Terminal implements Runnable, SerialPortEventListener {
                 } catch (IOException e) {
                 }
 
-                new Frame(readBuffer);
+                int size = 0;
+                byte[] buffer;
+
+                if (readBuffer[0] == -1) {
+                    for (int i = 1; i < readBuffer.length; i++) {
+                        if (readBuffer[i] == -1) {
+                            size = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (size != 0) {
+                    buffer = new byte[size + 1];
+                    System.arraycopy(readBuffer, 0, buffer, 0, size + 1);
+                    new Frame(buffer);
+                }
+
                 break;
         }
     }
