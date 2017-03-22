@@ -1,6 +1,6 @@
 package bmstu.iu5;
 
-import java.nio.ByteBuffer;
+import java.io.UnsupportedEncodingException;
 
 class Message {
     private String sourceName, destinationName, message;
@@ -13,6 +13,8 @@ class Message {
         lenSrcName = (byte)sourceName.length();
         lenDestName = (byte)destinationName.length();
         lenMessage = (byte)message.length();
+
+        sendMessage();
     }
 
     Message(byte[] bytes) {
@@ -51,5 +53,9 @@ class Message {
         System.arraycopy(message.getBytes(), 0, byteStream, lenDestName + lenSrcName + 3, lenMessage);
 
         return byteStream;
+    }
+
+    private void sendMessage() {
+        Frame frame = new Frame((byte)0, (byte)1, (byte)2, this);
     }
 }

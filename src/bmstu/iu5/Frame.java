@@ -15,6 +15,8 @@ class Frame {
         lengthData = (byte)message.getLengthMessage();
         //amountFrame[0] = 0;
         numberFrame++;
+
+        sendFrame();
     }
 
     Frame(byte[] readBuffer) {
@@ -56,7 +58,10 @@ class Frame {
                 System.arraycopy(contentFrame.getBytes(), 0, bytesStream, 5, lengthData);
                 break;
         }
-
         return bytesStream;
+    }
+
+    private void sendFrame() {
+        Main.outTerminal.send(this);
     }
 }

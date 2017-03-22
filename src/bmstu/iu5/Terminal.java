@@ -2,30 +2,34 @@ package bmstu.iu5;
 
 import javax.comm.*;
 import java.io.*;
-import java.util.Scanner;
 import java.util.TooManyListenersException;
 
 public class Terminal implements Runnable, SerialPortEventListener {
     private InputStream inputStream;
     private OutputStream outputStream;
     private SerialPort serialPort;
-    private Scanner scanner;
+    private boolean isOut;
+    private Frame frame;
 
-    Terminal(CommPortIdentifier portId, Scanner scanner) {
-        this.scanner = scanner;
+    Terminal(CommPortIdentifier portId, boolean isOut) {
+        this.isOut = isOut;
+
         try {
             serialPort = (SerialPort) portId.open("TerminalApp", 2000);
         } catch (PortInUseException e) {
+            System.out.println("! - " + e.getMessage());
         }
         try {
             outputStream = serialPort.getOutputStream();
             inputStream = serialPort.getInputStream();
         } catch (IOException e) {
+            System.out.println("! - " + e.getMessage());
         }
 
         try {
             serialPort.addEventListener(this);
         } catch (TooManyListenersException e) {
+            System.out.println("! - " + e.getMessage());
         }
         serialPort.notifyOnDataAvailable(true);
 
@@ -35,21 +39,14 @@ public class Terminal implements Runnable, SerialPortEventListener {
                     SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);
         } catch (UnsupportedCommOperationException e) {
+            System.out.println("! - " + e.getMessage());
         }
-        new Thread(this).start();
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
-                System.out.print("> ");
-                String line = scanner.nextLine();
-                if (line.equals("exit")) System.exit(1);
-
-                Message message = new Message("BlaBla", "LoL", line);
-
-                Frame frame = new Frame((byte)0, (byte)1, (byte)2, message);
+            if (isOut) {
                 byte lengthFrame = frame.getLengthFrame();
                 byte[] bytes = new byte[lengthFrame + 1];
                 bytes[0] = lengthFrame;
@@ -59,8 +56,13 @@ public class Terminal implements Runnable, SerialPortEventListener {
                 outputStream.flush();
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println("! - " + e.getMessage());
         }
+    }
+
+    void send(Frame frame) {
+        this.frame = frame;
+        new Thread(this).start();
     }
 
     public void serialEvent(SerialPortEvent event) {
@@ -85,6 +87,7 @@ public class Terminal implements Runnable, SerialPortEventListener {
                         read += a;
                     }
                 } catch (IOException e) {
+                    System.out.println("! - " + e.getMessage());
                 }
 
                 byte lengthFrame = readBuffer[0];
@@ -92,7 +95,6 @@ public class Terminal implements Runnable, SerialPortEventListener {
                 System.arraycopy(readBuffer, 1, frame, 0, lengthFrame);
 
                 new Frame(frame);
-
                 break;
         }
     }
