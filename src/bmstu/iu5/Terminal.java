@@ -6,12 +6,12 @@ import java.util.Scanner;
 import java.util.TooManyListenersException;
 
 public class Terminal implements Runnable, SerialPortEventListener {
-    InputStream inputStream;
-    OutputStream outputStream;
-    SerialPort serialPort;
-    Scanner scanner;
+    private InputStream inputStream;
+    private OutputStream outputStream;
+    private SerialPort serialPort;
+    private Scanner scanner;
 
-    public Terminal(CommPortIdentifier portId, Scanner scanner) {
+    Terminal(CommPortIdentifier portId, Scanner scanner) {
         this.scanner = scanner;
         try {
             serialPort = (SerialPort) portId.open("TerminalApp", 2000);
@@ -45,9 +45,17 @@ public class Terminal implements Runnable, SerialPortEventListener {
             while (true) {
                 System.out.print("> ");
                 String line = scanner.nextLine();
-                Frame frame = new Frame((byte)0, (byte)1, (byte)2, line);
                 if (line.equals("exit")) System.exit(1);
-                outputStream.write(frame.getBytes());
+
+                Message message = new Message("BlaBla", "LoL", line);
+
+                Frame frame = new Frame((byte)0, (byte)1, (byte)2, message);
+                byte lengthFrame = frame.getLengthFrame();
+                byte[] bytes = new byte[lengthFrame + 1];
+                bytes[0] = lengthFrame;
+                System.arraycopy(frame.getBytes(), 0, bytes, 1, lengthFrame);
+
+                outputStream.write(bytes);
                 outputStream.flush();
             }
         } catch (IOException e) {
@@ -79,23 +87,11 @@ public class Terminal implements Runnable, SerialPortEventListener {
                 } catch (IOException e) {
                 }
 
-                int size = 0;
-                byte[] buffer;
+                byte lengthFrame = readBuffer[0];
+                byte[] frame = new byte[lengthFrame];
+                System.arraycopy(readBuffer, 1, frame, 0, lengthFrame);
 
-                if (readBuffer[0] == -1) {
-                    for (int i = 1; i < readBuffer.length; i++) {
-                        if (readBuffer[i] == -1) {
-                            size = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (size != 0) {
-                    buffer = new byte[size + 1];
-                    System.arraycopy(readBuffer, 0, buffer, 0, size + 1);
-                    new Frame(buffer);
-                }
+                new Frame(frame);
 
                 break;
         }
