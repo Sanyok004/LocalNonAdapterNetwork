@@ -1,13 +1,10 @@
 package bmstu.iu5;
 
-import java.io.UnsupportedEncodingException;
-
 class Message {
-    private String sourceName, destinationName, message;
+    private String sourceName = Main.userName, destinationName, message;
     private byte lenSrcName, lenDestName, lenMessage;
 
-    Message(String srcName, String destName, String message) {
-        sourceName = srcName;
+    Message(String destName, String message) {
         destinationName = destName;
         this.message = message;
         lenSrcName = (byte)sourceName.length();
@@ -36,6 +33,8 @@ class Message {
         System.arraycopy(bytes, lenDest + lenSrc + 3, byteMess, 0, lenMess);
         String mess = new String(byteMess, 0 , lenMess);
         System.out.println("mess: " + mess);
+
+        Main.chat.setReadMessage(mess, src);
     }
 
     int getLengthMessage() {

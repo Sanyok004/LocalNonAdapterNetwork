@@ -6,17 +6,20 @@ import  java.util.*;
 public class Main {
     private static CommPortIdentifier portId = null;
     static Terminal outTerminal;
+    static String userName;
+    static Chat chat;
 
     public static void main(String[] args) {
-        new GUI();
-
+        GUI gui = new GUI();
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите исходящий порт: ");
-        String name = scanner.nextLine();
+        userName = gui.userName;
+        String outName = gui.outPort;
+        String inName = gui.inPort;
+
         Enumeration portList = CommPortIdentifier.getPortIdentifiers();
         while (portList.hasMoreElements()) {
             CommPortIdentifier _portId = (CommPortIdentifier) portList.nextElement();
-            if (_portId.getName().equals(name)) {
+            if (_portId.getName().equals(outName)) {
                 portId = _portId;
             }
         }
@@ -25,8 +28,6 @@ public class Main {
             System.exit(1);
         }
 
-        System.out.println("Введите входящий порт: ");
-        String inName = scanner.nextLine();
         CommPortIdentifier inPortId = null;
         portList = CommPortIdentifier.getPortIdentifiers();
         while (portList.hasMoreElements()) {
@@ -43,12 +44,7 @@ public class Main {
         outTerminal = new Terminal(portId, true);
         Terminal inTerminal = new Terminal(inPortId, false);
 
-        while (true) {
-            System.out.print("> ");
-            String line = scanner.nextLine();
-            if (line.equals("exit")) System.exit(1);
+        chat = new Chat();
 
-            Message message = new Message("BlaBla", "LoL", line);
-        }
     }
 }
