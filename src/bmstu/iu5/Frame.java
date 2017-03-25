@@ -1,22 +1,34 @@
 package bmstu.iu5;
 
 class Frame {
-    private Message contentFrame;
-    private static byte numberFrame = 0;
+    static final byte DATA_TRANSFER = 0;
+    static final byte SET_ADDRESS = 1;
+
+    private byte[] contentFrame;
+    private byte numberFrame = 0;
     private byte typeFrame;
     private byte sourceAddress, destinationAddress, lengthData = 0;
     //private byte[] amountFrame = new byte[4];
 
-    Frame(byte type, byte srcAddress, byte destAddress, Message message) {
-        contentFrame = message;
+    Frame(byte type, byte destAddress, byte srcAddress, Message message) {
+        contentFrame = message.getBytes();
         typeFrame = type;
-        sourceAddress = srcAddress;
         destinationAddress = destAddress;
+        sourceAddress = srcAddress;
         lengthData = (byte)message.getLengthMessage();
         //amountFrame[0] = 0;
         numberFrame++;
 
-        sendFrame();
+        sendFrame(this);
+    }
+
+    Frame (byte type, byte destAddress, byte srcAddress, byte address) {
+        typeFrame = type;
+        destinationAddress = destAddress;
+        sourceAddress = srcAddress;
+        contentFrame = new byte[1];
+        contentFrame[0] = address;
+        lengthData = (byte)1;
     }
 
     Frame(byte[] readBuffer) {
@@ -25,12 +37,21 @@ class Frame {
         typeFrame = readBuffer[2];
 
         switch (typeFrame) {
-            case 0:
+            case DATA_TRANSFER:
                 numberFrame = readBuffer[3];
                 byte length = readBuffer[4];
                 byte[] data = new byte[length];
                 System.arraycopy(readBuffer, 5, data, 0, length);
                 new Message(data);
+                break;
+
+            case SET_ADDRESS:
+                if (Main.address == 0) {
+                    Main.address = readBuffer[5];
+                    byte address = Main.address;
+                    sendFrame(new Frame(typeFrame, destination, source, ++address));
+                }
+                break;
         }
 
         System.out.print("Номер кадра: " + numberFrame);
@@ -41,7 +62,14 @@ class Frame {
     }
 
     byte getLengthFrame() {
-        return (byte)(lengthData + 5);
+        byte lengthFrame = 4;
+        switch (typeFrame) {
+            case DATA_TRANSFER:
+            case SET_ADDRESS:
+                lengthFrame += (byte)(lengthData + 1);
+                break;
+        }
+        return lengthFrame;
     }
 
     byte[] getBytes() {
@@ -52,16 +80,17 @@ class Frame {
         bytesStream[2] = typeFrame;
 
         switch (typeFrame) {
-            case 0:
+            case DATA_TRANSFER:
+            case SET_ADDRESS:
                 bytesStream[3] = numberFrame;
                 bytesStream[4] = lengthData;
-                System.arraycopy(contentFrame.getBytes(), 0, bytesStream, 5, lengthData);
+                System.arraycopy(contentFrame, 0, bytesStream, 5, lengthData);
                 break;
         }
         return bytesStream;
     }
 
-    private void sendFrame() {
-        Main.outTerminal.send(this);
+    private void sendFrame(Frame frame) {
+        Main.outTerminal.send(frame);
     }
 }

@@ -9,7 +9,7 @@ class Message {
         this.message = message;
         lenSrcName = (byte)sourceName.length();
         lenDestName = (byte)destinationName.length();
-        lenMessage = (byte)message.length();
+        lenMessage = (byte)message.getBytes().length;
 
         sendMessage();
     }
@@ -55,6 +55,6 @@ class Message {
     }
 
     private void sendMessage() {
-        Frame frame = new Frame((byte)0, (byte)1, (byte)2, this);
+        Frame frame = new Frame(Frame.DATA_TRANSFER, (byte)2, Main.address, this);
     }
 }

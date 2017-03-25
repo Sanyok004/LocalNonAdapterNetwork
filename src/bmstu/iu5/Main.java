@@ -1,50 +1,31 @@
 package bmstu.iu5;
 
 import javax.comm.*;
-import  java.util.*;
 
 public class Main {
-    private static CommPortIdentifier portId = null;
     static Terminal outTerminal;
     static String userName;
     static Chat chat;
+    static boolean isMain;
+    static byte address = 0;
 
     public static void main(String[] args) {
         GUI gui = new GUI();
-        Scanner scanner = new Scanner(System.in);
         userName = gui.userName;
         String outName = gui.outPort;
         String inName = gui.inPort;
+        isMain = gui.isMain;
 
-        Enumeration portList = CommPortIdentifier.getPortIdentifiers();
-        while (portList.hasMoreElements()) {
-            CommPortIdentifier _portId = (CommPortIdentifier) portList.nextElement();
-            if (_portId.getName().equals(outName)) {
-                portId = _portId;
-            }
-        }
-        if (portId == null) {
-            System.out.println("Port not found.");
-            System.exit(1);
-        }
+        CommPortIdentifier outPortId = gui.foundPort(outName);
+        CommPortIdentifier inPortId = gui.foundPort(inName);
 
-        CommPortIdentifier inPortId = null;
-        portList = CommPortIdentifier.getPortIdentifiers();
-        while (portList.hasMoreElements()) {
-            CommPortIdentifier _portId = (CommPortIdentifier) portList.nextElement();
-            if (_portId.getName().equals(inName)) {
-                inPortId = _portId;
-            }
-        }
-        if (inPortId == null) {
-            System.out.println("Port not found.");
-            System.exit(1);
-        }
-
-        outTerminal = new Terminal(portId, true);
+        outTerminal = new Terminal(outPortId, true);
         Terminal inTerminal = new Terminal(inPortId, false);
 
         chat = new Chat();
-
+        if (isMain) {
+            address = 1;
+            outTerminal.send(new Frame(Frame.SET_ADDRESS, (byte)-1, address, (byte)2));
+        }
     }
 }
