@@ -1,8 +1,14 @@
 package bmstu.iu5;
 
+import javax.swing.*;
+import java.util.ArrayList;
+
 class Frame {
     static final byte DATA_TRANSFER = 0;
     static final byte SET_ADDRESS = 1;
+    static final byte CHANGE_NAME = 2;
+    static final byte GET_NAMES = 3;
+    static final byte SET_NAMES = 4;
 
     private byte[] contentFrame;
     private byte numberFrame = 0;
@@ -22,6 +28,14 @@ class Frame {
         sendFrame(this);
     }
 
+    Frame(byte type, byte destAddress, byte srcAddress, byte[] names) {
+        typeFrame = type;
+        destinationAddress = destAddress;
+        sourceAddress = srcAddress;
+        contentFrame = names;
+        lengthData = (byte)contentFrame.length;
+    }
+
     Frame (byte type, byte destAddress, byte srcAddress, byte address) {
         typeFrame = type;
         destinationAddress = destAddress;
@@ -29,6 +43,12 @@ class Frame {
         contentFrame = new byte[1];
         contentFrame[0] = address;
         lengthData = (byte)1;
+    }
+
+    Frame (byte type, byte destAddress, byte srcAddress) {
+        typeFrame = type;
+        destinationAddress = destAddress;
+        sourceAddress = srcAddress;
     }
 
     Frame(byte[] readBuffer) {
@@ -51,6 +71,51 @@ class Frame {
                     byte address = Main.address;
                     sendFrame(new Frame(typeFrame, destination, source, ++address));
                 }
+                else Main.isReady = true;
+                break;
+
+            case GET_NAMES:
+                byte lengthNames = readBuffer[4];
+                if (source != Main.address) {
+                    byte[] names = new byte[lengthNames + Main.userName.length() + 2];
+                    System.arraycopy(readBuffer, 5, names, 0, lengthNames);
+                    names[lengthNames] = -127;
+                    names[lengthNames + 1] = Main.address;
+                    System.arraycopy(Main.userName.getBytes(), 0, names, lengthNames + 2, Main.userName.length());
+                    sendFrame(new Frame(typeFrame, destination, source, names));
+                }
+                else {
+                    byte[] allNames = new byte[lengthNames];
+                    System.arraycopy(readBuffer, 5, allNames, 0, lengthNames);
+                    sendFrame(new Frame(SET_NAMES, destination, source, allNames));
+                }
+                break;
+
+            case SET_NAMES:
+                ArrayList<String> usersList = new ArrayList<>();
+                byte lengthNamesList = readBuffer[4];
+                byte[] allNames = new byte[lengthNamesList];
+                System.arraycopy(readBuffer, 5, allNames, 0, lengthNamesList);
+                int position = 0;
+                while (position < lengthNamesList) {
+                    int pos = 0;
+                    System.out.print("!-- Address: " + allNames[position]);
+                    while (allNames[position + pos] != -127) {
+                        pos++;
+                        if (position + pos == lengthNamesList) break;
+                    }
+                    byte[] name = new byte[pos - 1];
+                    System.arraycopy(allNames, position + 1, name, 0, pos - 1);
+                    String sName = new String(name);
+                    System.out.println("; Name: " + sName);
+                    usersList.add(sName);
+                    position += pos + 1;
+                }
+                String[] users = usersList.toArray(new String[usersList.size()]);
+                Main.chat.UsersList.setListData(users);
+
+                if (source != Main.address) sendFrame(new Frame(typeFrame, destination, source, allNames));
+                Main.isReady = true;
                 break;
         }
 
@@ -58,15 +123,20 @@ class Frame {
         System.out.print("; Тип кадра: " + typeFrame);
         System.out.print("; Источник: " + source);
         System.out.println("; Пункт назначения: " + destination);
-        System.out.print("> ");
+        System.out.println("--------------");
     }
 
     byte getLengthFrame() {
-        byte lengthFrame = 4;
+        byte lengthFrame = 3;
         switch (typeFrame) {
             case DATA_TRANSFER:
             case SET_ADDRESS:
-                lengthFrame += (byte)(lengthData + 1);
+            case GET_NAMES:
+            case SET_NAMES:
+                lengthFrame += (byte)(lengthData + 2);
+                break;
+
+            case CHANGE_NAME:
                 break;
         }
         return lengthFrame;
@@ -82,9 +152,14 @@ class Frame {
         switch (typeFrame) {
             case DATA_TRANSFER:
             case SET_ADDRESS:
+            case GET_NAMES:
+            case SET_NAMES:
                 bytesStream[3] = numberFrame;
                 bytesStream[4] = lengthData;
                 System.arraycopy(contentFrame, 0, bytesStream, 5, lengthData);
+                break;
+
+            case CHANGE_NAME:
                 break;
         }
         return bytesStream;

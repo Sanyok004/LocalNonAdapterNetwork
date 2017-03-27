@@ -12,6 +12,10 @@ public class Chat extends JFrame{
     private JButton SendButton;
     private JScrollPane ScrollPane;
     private JTextArea ReadMessage;
+    private JLabel UsersListLabel;
+    private JScrollPane UsersScroll;
+    final DefaultListModel<String> dlm = new DefaultListModel<>();
+    JList<String> UsersList;
 
     Chat() {
         setSize(800, 600);
@@ -20,6 +24,9 @@ public class Chat extends JFrame{
         setLocationRelativeTo(null);
         SendButton.addActionListener(new SendButtonActionListener());
         SendMessage.addKeyListener(new SendMessageKeyListener());
+        DefaultListModel<String> dlm = new DefaultListModel<>();
+        UsersList.setModel(dlm);
+        addUser("asdsdsdddddddd");
 
         setContentPane(rootPanel);
 
@@ -30,6 +37,10 @@ public class Chat extends JFrame{
         String textBuffer = ReadMessage.getText();
         textBuffer = textBuffer + src + ": " + message + "\n";
         ReadMessage.setText(textBuffer);
+    }
+
+    void addUser(String user) {
+        dlm.addElement(user);
     }
 
     class SendButtonActionListener implements ActionListener {
