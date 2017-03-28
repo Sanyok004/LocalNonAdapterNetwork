@@ -7,8 +7,9 @@ import java.util.Map;
 public class Main {
     static Terminal outTerminal;
     static String userName;
+    static String dialogNameUser;
+    static byte dialogAddressUser;
     static Chat chat;
-    static boolean isMain;
     static boolean isReady = true;
     static byte address = 0;
     static Map<String, Byte> usersMap = new HashMap<>();
@@ -18,7 +19,7 @@ public class Main {
         userName = gui.userName;
         String outName = gui.outPort;
         String inName = gui.inPort;
-        isMain = gui.isMain;
+        boolean isMain = gui.isMain;
 
         CommPortIdentifier outPortId = gui.foundPort(outName);
         CommPortIdentifier inPortId = gui.foundPort(inName);

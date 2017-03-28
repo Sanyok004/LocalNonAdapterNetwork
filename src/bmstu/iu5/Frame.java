@@ -5,9 +5,12 @@ import java.util.ArrayList;
 class Frame {
     static final byte DATA_TRANSFER = 0;
     static final byte SET_ADDRESS = 1;
-    static final byte IS_READY = 2;
+    private static final byte IS_READY = 2;
     static final byte GET_NAMES = 3;
-    static final byte SET_NAMES = 4;
+    private static final byte SET_NAMES = 4;
+    static final byte ACK = 5;
+    private static final byte SYN = 6;
+    private static final byte NO_SYN = 7;
 
     private byte[] contentFrame;
     private byte numberFrame = 0;
@@ -61,7 +64,8 @@ class Frame {
                 byte length = readBuffer[4];
                 byte[] data = new byte[length];
                 System.arraycopy(readBuffer, 5, data, 0, length);
-                new Message(data);
+                if (destination == Main.address) new Message(data);
+                else sendFrame(new Frame(typeFrame, destination, source, data));
                 break;
 
             case SET_ADDRESS:
@@ -153,6 +157,58 @@ class Frame {
                 Main.chat.setReadMessage("Завершено.", "System");
                 Main.chat.setReadMessage("Выберите пользователя, с которым хотите начать диалог -->", "System");
                 if (source != Main.address) sendFrame(new Frame(typeFrame, destination, source));
+                break;
+
+            case ACK:
+                if (destination == Main.address) {
+                    String user = "";
+                    for (String k : Main.usersMap.keySet()) {
+                        if (Main.usersMap.get(k) == source) user = k;
+                    }
+                    Main.chat.setReadMessage("Пользователь " + user + " хочет начать с вами диалог", "System");
+                    if (Main.chat.choiseUser(user) == 0) {
+                        Main.dialogNameUser = user;
+                        Main.dialogAddressUser = source;
+                        Main.chat.setTitle("Chat: " + Main.userName + " - " + Main.dialogNameUser);
+                        Main.chat.setReadMessage("\n ---------------------\n", "");
+                        Main.chat.setDialog();
+                        sendFrame(new Frame(SYN, source, Main.address));
+                    }
+                    else {
+                        Main.chat.setReadMessage("Вы отказались начать диалог с " + user, "System");
+                        sendFrame(new Frame(NO_SYN, source, Main.address));
+                    }
+                }
+                else sendFrame(new Frame(typeFrame, destination, source));
+                break;
+
+            case SYN:
+                if (destination == Main.address) {
+                    String user = "";
+                    for (String k : Main.usersMap.keySet()) {
+                        if (Main.usersMap.get(k) == source) user = k;
+                    }
+                    Main.chat.setTitle("Chat: " + Main.userName + " - " + Main.dialogNameUser);
+                    Main.chat.setReadMessage("Пользователь " + user + " согласился начать с вами диалог", "System");
+                    Main.chat.setReadMessage("\n ---------------------\n", "");
+                    Main.chat.setDialog();
+                }
+                else sendFrame(new Frame(typeFrame, destination, source));
+                break;
+
+            case NO_SYN:
+                if (destination == Main.address) {
+                    String user = "";
+                    for (String k : Main.usersMap.keySet()) {
+                        if (Main.usersMap.get(k) == source) user = k;
+                    }
+                    Main.chat.setReadMessage("Пользователь " + user + " не согласился начать с вами диалог", "System");
+                    Main.dialogAddressUser = 0;
+                    Main.dialogNameUser = null;
+
+                }
+                else sendFrame(new Frame(typeFrame, destination, source));
+                break;
         }
 
         System.out.print("Номер кадра: " + numberFrame);
@@ -173,6 +229,9 @@ class Frame {
                 break;
 
             case IS_READY:
+            case ACK:
+            case SYN:
+            case NO_SYN:
                 break;
         }
         return lengthFrame;
@@ -196,6 +255,9 @@ class Frame {
                 break;
 
             case IS_READY:
+            case ACK:
+            case SYN:
+            case NO_SYN:
                 break;
         }
         return bytesStream;

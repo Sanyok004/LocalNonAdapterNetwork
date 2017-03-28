@@ -1,7 +1,8 @@
 package bmstu.iu5;
 
 class Message {
-    private String sourceName = Main.userName, destinationName, message;
+    private String sourceName = Main.userName;
+    private String destinationName, message;
     private byte lenSrcName, lenDestName, lenMessage;
 
     Message(String destName, String message) {
@@ -55,6 +56,6 @@ class Message {
     }
 
     private void sendMessage() {
-        Frame frame = new Frame(Frame.DATA_TRANSFER, (byte)2, Main.address, this);
+        new Frame(Frame.DATA_TRANSFER, Main.dialogAddressUser, Main.address, this);
     }
 }

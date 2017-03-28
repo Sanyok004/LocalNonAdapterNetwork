@@ -15,15 +15,15 @@ public class Chat extends JFrame{
     private JLabel UsersListLabel;
     private JScrollPane UsersScroll;
     JList<String> UsersList;
+    private JButton ChoiseUser;
 
     Chat() {
         setSize(800, 600);
         setTitle("Chat - " + Main.userName);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        SendButton.addActionListener(new SendButtonActionListener());
-        SendMessage.addKeyListener(new SendMessageKeyListener());
-
+        SendMessage.setEnabled(false);
+        ChoiseUser.addActionListener(new ChoiseUserButtonActionListener());
         setContentPane(rootPanel);
 
         setVisible(true);
@@ -35,6 +35,16 @@ public class Chat extends JFrame{
         ReadMessage.setText(textBuffer);
     }
 
+    void setDialog() {
+        SendButton.addActionListener(new SendButtonActionListener());
+        SendMessage.addKeyListener(new SendMessageKeyListener());
+        SendMessage.setEnabled(true);
+    }
+
+    int choiseUser(String user) {
+        return JOptionPane.showConfirmDialog(rootPanel, "Пользователь " + user + " хочет начать с вами диалог", "Начать диалог?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    }
+
     class SendButtonActionListener implements ActionListener {
 
         @Override
@@ -42,7 +52,7 @@ public class Chat extends JFrame{
             String sendMessage = SendMessage.getText();
             SendMessage.setText("");
 
-            Message message = new Message("Lol", sendMessage);
+            new Message(Main.dialogNameUser, sendMessage);
             setReadMessage(sendMessage, Main.userName);
         }
     }
@@ -53,8 +63,22 @@ public class Chat extends JFrame{
                 String sendMessage = SendMessage.getText();
                 SendMessage.setText("");
 
-                Message message = new Message("Lol", sendMessage);
+                new Message(Main.dialogNameUser, sendMessage);
                 setReadMessage(sendMessage, Main.userName);
+            }
+        }
+    }
+
+    class ChoiseUserButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String user = UsersList.getSelectedValue();
+            if (user != null) {
+                Main.dialogNameUser = user;
+                Main.dialogAddressUser = Main.usersMap.get(user);
+                setReadMessage("Запрос на установление соединения с пользователем " + user, "System");
+                Main.outTerminal.send(new Frame(Frame.ACK, Main.dialogAddressUser, Main.address));
             }
         }
     }
