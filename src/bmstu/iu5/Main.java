@@ -1,6 +1,8 @@
 package bmstu.iu5;
 
 import javax.comm.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
     static Terminal outTerminal;
@@ -9,6 +11,7 @@ public class Main {
     static boolean isMain;
     static boolean isReady = true;
     static byte address = 0;
+    static Map<String, Byte> usersMap = new HashMap<>();
 
     public static void main(String[] args) throws InterruptedException {
         GUI gui = new GUI();
@@ -24,6 +27,7 @@ public class Main {
         Terminal inTerminal = new Terminal(inPortId, false);
 
         chat = new Chat();
+        chat.setReadMessage("Подождите, идет настройка сети...", "System");
         if (isMain) {
             address = 1;
             isReady = false;
@@ -33,11 +37,7 @@ public class Main {
             byte[] name = new byte[userName.length() + 1];
             name[0] = address;
             System.arraycopy(userName.getBytes(), 0, name, 1, userName.length());
-            isReady = false;
             outTerminal.send(new Frame(Frame.GET_NAMES, (byte)-1, address, name));
-            while (!isReady);
-
-            System.out.println("!-------- I am here!!!!!!!!!");
         }
     }
 }
