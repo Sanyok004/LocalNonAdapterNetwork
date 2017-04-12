@@ -16,9 +16,10 @@ public class Chat extends JFrame{
     private JScrollPane UsersScroll;
     JList<String> UsersList;
     private JButton ChoiseUser;
+    private JButton FinishDialogButton;
 
     Chat() {
-        setSize(800, 600);
+        setSize(830, 600);
         setTitle("Chat - " + Main.userName);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -35,10 +36,30 @@ public class Chat extends JFrame{
         ReadMessage.setText(textBuffer);
     }
 
+    void clearChat() {
+        ReadMessage.setText("");
+    }
+
     void setDialog() {
         SendButton.addActionListener(new SendButtonActionListener());
+        ChoiseUser.removeActionListener(ChoiseUser.getActionListeners()[0]);
+        ChoiseUser.addActionListener(new LockedChoiseUserButtonActionListener());
         SendMessage.addKeyListener(new SendMessageKeyListener());
+        FinishDialogButton.addActionListener(new FinishDialogButtonActionListener());
         SendMessage.setEnabled(true);
+    }
+
+    void finishDialog() {
+        SendButton.removeActionListener(SendButton.getActionListeners()[0]);
+        ChoiseUser.removeActionListener(ChoiseUser.getActionListeners()[0]);
+        ChoiseUser.addActionListener(new ChoiseUserButtonActionListener());
+        SendMessage.removeKeyListener(SendMessage.getKeyListeners()[0]);
+        FinishDialogButton.removeActionListener(FinishDialogButton.getActionListeners()[0]);
+        SendMessage.setEnabled(false);
+
+        Main.dialogNameUser = null;
+        Main.dialogAddressUser = 0;
+        setTitle("Chat - " + Main.userName);
     }
 
     int choiseUser(String user) {
@@ -78,8 +99,28 @@ public class Chat extends JFrame{
                 Main.dialogNameUser = user;
                 Main.dialogAddressUser = Main.usersMap.get(user);
                 setReadMessage("Запрос на установление соединения с пользователем " + user, "System");
-                Main.outTerminal.send(new Frame(Frame.ACK, Main.dialogAddressUser, Main.address));
+                Main.buffer = new Frame(Frame.ACK, Main.dialogAddressUser, Main.address);
             }
+        }
+    }
+
+    class LockedChoiseUserButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JOptionPane.showMessageDialog(rootPanel, "Вы не можите начать новый диалог, пока не закончите старый", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    class FinishDialogButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Main.buffer = new Frame(Frame.FINISH, Main.dialogAddressUser, Main.address);
+            finishDialog();
+            clearChat();
+            setReadMessage("Вы закончили диалог", "System");
+            setReadMessage("Выберите пользователя, с которым хотите начать диалог -->", "System");
         }
     }
 }

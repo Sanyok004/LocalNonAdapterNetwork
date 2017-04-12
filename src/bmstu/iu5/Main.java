@@ -13,6 +13,7 @@ public class Main {
     static boolean isReady = true;
     static byte address = 0;
     static Map<String, Byte> usersMap = new HashMap<>();
+    static Frame buffer;
 
     public static void main(String[] args) throws InterruptedException {
         GUI gui = new GUI();

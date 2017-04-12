@@ -3,6 +3,7 @@ package bmstu.iu5;
 import java.util.ArrayList;
 
 class Frame {
+    private static final byte MARKER = -1;
     static final byte DATA_TRANSFER = 0;
     static final byte SET_ADDRESS = 1;
     private static final byte IS_READY = 2;
@@ -11,6 +12,9 @@ class Frame {
     static final byte ACK = 5;
     private static final byte SYN = 6;
     private static final byte NO_SYN = 7;
+    private static final byte SUCCESS = 8;
+    private static final byte ERROR = 9;
+    static final byte FINISH = 10;
 
     private byte[] contentFrame;
     private byte numberFrame = 0;
@@ -64,15 +68,18 @@ class Frame {
                 byte length = readBuffer[4];
                 byte[] data = new byte[length];
                 System.arraycopy(readBuffer, 5, data, 0, length);
-                if (destination == Main.address) new Message(data);
-                else sendFrame(new Frame(typeFrame, destination, source, data));
+                if (destination == Main.address) {
+                    Main.outTerminal.send(new Frame(SUCCESS, source, destination));
+                    new Message(data);
+                }
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source, data));
                 break;
 
             case SET_ADDRESS:
                 if (Main.address == 0) {
                     Main.address = readBuffer[5];
                     byte address = Main.address;
-                    sendFrame(new Frame(typeFrame, destination, source, ++address));
+                    Main.outTerminal.send(new Frame(typeFrame, destination, source, ++address));
                 }
                 else Main.isReady = true;
                 break;
@@ -98,12 +105,16 @@ class Frame {
                         position += pos + 1;
                     }
 
-                    if (usersList.contains(Main.userName)) new ChangeName(usersList);
+                    if (usersList.contains(Main.userName)) {
+                        new ChangeName(usersList);
+                        names = new byte[lengthNames + Main.userName.length() + 2];
+                        System.arraycopy(readBuffer, 5, names, 0, lengthNames);
+                    }
 
                     names[lengthNames] = -127;
                     names[lengthNames + 1] = Main.address;
                     System.arraycopy(Main.userName.getBytes(), 0, names, lengthNames + 2, Main.userName.length());
-                    sendFrame(new Frame(typeFrame, destination, source, names));
+                    Main.outTerminal.send(new Frame(typeFrame, destination, source, names));
                 }
                 else {
                     byte[] allNames = new byte[lengthNames];
@@ -122,7 +133,7 @@ class Frame {
                         Main.usersMap.put(sName, address);
                         position += pos + 1;
                     }
-                    sendFrame(new Frame(SET_NAMES, destination, source, allNames));
+                    Main.outTerminal.send(new Frame(SET_NAMES, destination, source, allNames));
                 }
                 break;
 
@@ -149,18 +160,20 @@ class Frame {
                 String[] users = usersList.toArray(new String[usersList.size()]);
                 Main.chat.UsersList.setListData(users);
 
-                if (source != Main.address) sendFrame(new Frame(typeFrame, destination, source, allNames));
-                else sendFrame(new Frame(IS_READY, (byte)-1, Main.address));
+                if (source != Main.address) Main.outTerminal.send(new Frame(typeFrame, destination, source, allNames));
+                else Main.outTerminal.send(new Frame(IS_READY, (byte)-1, Main.address));
                 break;
 
             case IS_READY:
                 Main.chat.setReadMessage("Завершено.", "System");
                 Main.chat.setReadMessage("Выберите пользователя, с которым хотите начать диалог -->", "System");
-                if (source != Main.address) sendFrame(new Frame(typeFrame, destination, source));
+                if (source != Main.address) Main.outTerminal.send(new Frame(typeFrame, destination, source));
+                else Main.outTerminal.send(new Frame(MARKER, (byte)-1, (byte)-1));
                 break;
 
             case ACK:
                 if (destination == Main.address) {
+                    Main.outTerminal.send(new Frame(SUCCESS, source, destination));
                     String user = "";
                     for (String k : Main.usersMap.keySet()) {
                         if (Main.usersMap.get(k) == source) user = k;
@@ -179,11 +192,12 @@ class Frame {
                         sendFrame(new Frame(NO_SYN, source, Main.address));
                     }
                 }
-                else sendFrame(new Frame(typeFrame, destination, source));
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
                 break;
 
             case SYN:
                 if (destination == Main.address) {
+                    Main.outTerminal.send(new Frame(SUCCESS, source, destination));
                     String user = "";
                     for (String k : Main.usersMap.keySet()) {
                         if (Main.usersMap.get(k) == source) user = k;
@@ -193,11 +207,12 @@ class Frame {
                     Main.chat.setReadMessage("\n ---------------------\n", "");
                     Main.chat.setDialog();
                 }
-                else sendFrame(new Frame(typeFrame, destination, source));
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
                 break;
 
             case NO_SYN:
                 if (destination == Main.address) {
+                    Main.outTerminal.send(new Frame(SUCCESS, source, destination));
                     String user = "";
                     for (String k : Main.usersMap.keySet()) {
                         if (Main.usersMap.get(k) == source) user = k;
@@ -207,15 +222,51 @@ class Frame {
                     Main.dialogNameUser = null;
 
                 }
-                else sendFrame(new Frame(typeFrame, destination, source));
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
+                break;
+
+            case SUCCESS:
+                if (destination == Main.address) {
+                    Main.buffer = null;
+                    Main.outTerminal.send(new Frame(MARKER, (byte)-1, (byte)-1));
+                }
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
+                break;
+
+            case ERROR:
+                if (destination == Main.address) Main.outTerminal.send(Main.buffer);
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
+                break;
+
+            case FINISH:
+                if (destination == Main.address) {
+                    Main.outTerminal.send(new Frame(SUCCESS, source, destination));
+                    String user = "";
+                    for (String k : Main.usersMap.keySet()) {
+                        if (Main.usersMap.get(k) == source) user = k;
+                    }
+
+                    Main.chat.finishDialog();
+                    Main.chat.clearChat();
+                    Main.chat.setReadMessage("Пользователь " + user + " закончил с вами диалог", "System");
+                    Main.chat.setReadMessage("Выберите пользователя, с которым хотите начать диалог -->", "System");
+                }
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
+                break;
+
+            case MARKER:
+                if (Main.buffer != null) Main.outTerminal.send(Main.buffer);
+                else Main.outTerminal.send(new Frame(typeFrame, destination, source));
                 break;
         }
 
-        System.out.print("Номер кадра: " + numberFrame);
-        System.out.print("; Тип кадра: " + typeFrame);
-        System.out.print("; Источник: " + source);
-        System.out.println("; Пункт назначения: " + destination);
-        System.out.println("--------------");
+        if (typeFrame != MARKER) {
+            System.out.print("Номер кадра: " + numberFrame);
+            System.out.print("; Тип кадра: " + typeFrame);
+            System.out.print("; Источник: " + source);
+            System.out.println("; Пункт назначения: " + destination);
+            System.out.println("--------------");
+        }
     }
 
     byte getLengthFrame() {
@@ -228,10 +279,14 @@ class Frame {
                 lengthFrame += (byte)(lengthData + 2);
                 break;
 
+            case MARKER:
             case IS_READY:
             case ACK:
             case SYN:
             case NO_SYN:
+            case SUCCESS:
+            case ERROR:
+            case FINISH:
                 break;
         }
         return lengthFrame;
@@ -254,16 +309,20 @@ class Frame {
                 System.arraycopy(contentFrame, 0, bytesStream, 5, lengthData);
                 break;
 
+            case MARKER:
             case IS_READY:
             case ACK:
             case SYN:
             case NO_SYN:
+            case SUCCESS:
+            case ERROR:
+            case FINISH:
                 break;
         }
         return bytesStream;
     }
 
     private void sendFrame(Frame frame) {
-        Main.outTerminal.send(frame);
+        Main.buffer = frame;
     }
 }
