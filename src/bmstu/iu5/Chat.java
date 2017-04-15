@@ -108,7 +108,7 @@ public class Chat extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(rootPanel, "Вы не можите начать новый диалог, пока не закончите старый", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(rootPanel, "Вы не можете начать новый диалог, пока не закончите старый", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

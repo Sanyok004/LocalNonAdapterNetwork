@@ -10,21 +10,11 @@
     <children>
       <component id="8d85f" class="javax.swing.JLabel" binding="OutPortLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font size="14"/>
           <text value="Введите исходящий порт"/>
-        </properties>
-      </component>
-      <component id="abbbd" class="javax.swing.JTextField" binding="OutPort">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <font size="14"/>
         </properties>
       </component>
       <component id="dc00d" class="javax.swing.JLabel" binding="InPortLabel">
@@ -34,16 +24,6 @@
         <properties>
           <font size="14"/>
           <text value="Введите входящий порт"/>
-        </properties>
-      </component>
-      <component id="9bf5c" class="javax.swing.JTextField" binding="InPort">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <font size="14"/>
         </properties>
       </component>
       <component id="b3f72" class="javax.swing.JButton" binding="OKButton" default-binding="true">
@@ -74,28 +54,49 @@
           <font size="14"/>
         </properties>
       </component>
-      <component id="f7926" class="javax.swing.JLabel" binding="PortNotFound1">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-        </properties>
-      </component>
-      <component id="1713b" class="javax.swing.JLabel" binding="PortNotFound2">
-        <constraints>
-          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-        </properties>
-      </component>
       <component id="9a848" class="javax.swing.JCheckBox" binding="IsMain">
         <constraints>
           <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Главная станция"/>
+        </properties>
+      </component>
+      <component id="331db" class="javax.swing.JComboBox" binding="OutPortComboBox">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font size="14"/>
+        </properties>
+      </component>
+      <component id="987d9" class="javax.swing.JComboBox" binding="InPortComboBox">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font size="14"/>
+        </properties>
+      </component>
+      <component id="22d45" class="javax.swing.JLabel" binding="NameIsEmptyLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="b45c4" class="javax.swing.JLabel" binding="EqualsPortsLabel">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
         </properties>
       </component>
     </children>

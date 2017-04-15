@@ -8,16 +8,16 @@ import java.util.Enumeration;
 
 public class GUI extends JFrame{
     private JPanel rootPanel;
-    private JTextField OutPort;
     private JLabel OutPortLabel;
     private JLabel InPortLabel;
-    private JTextField InPort;
     private JButton OKButton;
     private JLabel NameLabel;
     private JTextField Name;
-    private JLabel PortNotFound1;
-    private JLabel PortNotFound2;
     private JCheckBox IsMain;
+    private JComboBox<String> OutPortComboBox;
+    private JComboBox<String> InPortComboBox;
+    private JLabel NameIsEmptyLabel;
+    private JLabel EqualsPortsLabel;
 
     String outPort, inPort, userName;
     private boolean isError = true;
@@ -30,16 +30,12 @@ public class GUI extends JFrame{
         setLocationRelativeTo(null);
         OKButton.addActionListener(new OKButtonActionListener());
         setContentPane(rootPanel);
+        portsList(OutPortComboBox);
+        portsList(InPortComboBox);
 
         setVisible(true);
         checkForm();
         setVisible(false);
-    }
-
-    private boolean checkPort(CommPortIdentifier portId) {
-        boolean isNotFound;
-        isNotFound = portId == null;
-        return isNotFound;
     }
 
     CommPortIdentifier foundPort (String namePort) {
@@ -55,6 +51,14 @@ public class GUI extends JFrame{
         return portId;
     }
 
+    private void portsList(JComboBox<String> comboBox) {
+        Enumeration portList = CommPortIdentifier.getPortIdentifiers();
+        while (portList.hasMoreElements()) {
+            CommPortIdentifier _portId = (CommPortIdentifier) portList.nextElement();
+            comboBox.addItem(_portId.getName());
+        }
+    }
+
     private void checkForm() {
         while (isError) {
             //...
@@ -65,19 +69,18 @@ public class GUI extends JFrame{
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            outPort = OutPort.getText();
-            boolean outPortIsNotFound = checkPort(foundPort(outPort));
-            if (outPortIsNotFound) PortNotFound1.setText("Порт не найден");
-            else PortNotFound1.setText("");
-
-            inPort = InPort.getText();
-            boolean inPortIsNotFound = checkPort(foundPort(inPort));
-            if (inPortIsNotFound) PortNotFound2.setText("Порт не найден");
-            else PortNotFound2.setText("");
-
+            outPort = (String) OutPortComboBox.getSelectedItem();
+            inPort = (String ) InPortComboBox.getSelectedItem();
             isMain = IsMain.isSelected();
             userName = Name.getText();
-            isError = outPortIsNotFound || inPortIsNotFound;
+
+            if (outPort.equals(inPort)) EqualsPortsLabel.setText("Порты не могут быть одинаковыми");
+            else EqualsPortsLabel.setText("");
+            if (userName.equals("")) NameIsEmptyLabel.setText("Имя не может быть пустым");
+            else if (userName.length() > 8) NameIsEmptyLabel.setText("Имя не может содержать больше 8 символов");
+            else NameIsEmptyLabel.setText("");
+
+            isError = outPort.equals(inPort) || userName.equals("") || userName.length() > 8;
         }
     }
 }

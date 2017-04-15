@@ -260,13 +260,13 @@ class Frame {
                 break;
         }
 
-        if (typeFrame != MARKER) {
+        //if (typeFrame != MARKER) {
             System.out.print("Номер кадра: " + numberFrame);
             System.out.print("; Тип кадра: " + typeFrame);
             System.out.print("; Источник: " + source);
             System.out.println("; Пункт назначения: " + destination);
             System.out.println("--------------");
-        }
+        //}
     }
 
     byte getLengthFrame() {
