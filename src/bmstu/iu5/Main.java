@@ -10,17 +10,17 @@ public class Main {
     static String dialogNameUser;
     static byte dialogAddressUser;
     static Chat chat;
-    static boolean isReady = true;
     static byte address = 0;
     static Map<String, Byte> usersMap = new HashMap<>();
     static Frame buffer;
+    static boolean isMain, isMarker;
 
     public static void main(String[] args) throws InterruptedException {
         GUI gui = new GUI();
         userName = gui.userName;
         String outName = gui.outPort;
         String inName = gui.inPort;
-        boolean isMain = gui.isMain;
+        isMain = gui.isMain;
 
         CommPortIdentifier outPortId = gui.foundPort(outName);
         CommPortIdentifier inPortId = gui.foundPort(inName);
@@ -30,16 +30,11 @@ public class Main {
 
         chat = new Chat();
         chat.setReadMessage("Подождите, идет настройка сети...", "System");
+
         if (isMain) {
             address = 1;
-            isReady = false;
-            outTerminal.send(new Frame(Frame.SET_ADDRESS, (byte)-1, address, (byte)2));
-            while (!isReady);
-
-            byte[] name = new byte[userName.length() + 1];
-            name[0] = address;
-            System.arraycopy(userName.getBytes(), 0, name, 1, userName.length());
-            outTerminal.send(new Frame(Frame.GET_NAMES, (byte)-1, address, name));
+            buffer = new Frame(Frame.SET_ADDRESS, (byte)-1, address, (byte)2);
+            outTerminal.send(new Frame(Frame.MARKER, (byte)-1, (byte)-1));
         }
     }
 }
