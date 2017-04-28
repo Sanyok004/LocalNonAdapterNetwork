@@ -1,6 +1,11 @@
 package bmstu.iu5;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -17,6 +22,11 @@ public class Chat extends JFrame{
     JList<String> UsersList;
     private JButton ChoiseUser;
     private JButton FinishDialogButton;
+    private JButton ClearChatButton;
+    private JLabel SymbolLeftLabel;
+    private JLabel SymbolLeft;
+
+    private int canEntered = 42;
 
     Chat() {
         setSize(830, 600);
@@ -25,6 +35,10 @@ public class Chat extends JFrame{
         setLocationRelativeTo(null);
         SendMessage.setEnabled(false);
         ChoiseUser.addActionListener(new ChoiseUserButtonActionListener());
+        ClearChatButton.addActionListener(new ClearChatButtonActionListener());
+        SendMessage.setDocument(new SendMessagePlainDocument());
+        SendMessage.getDocument().addDocumentListener(new SendMessageDocumentListener());
+        SymbolLeft.setText(Integer.toString(canEntered));
         setContentPane(rootPanel);
 
         setVisible(true);
@@ -64,6 +78,11 @@ public class Chat extends JFrame{
 
     int choiseUser(String user) {
         return JOptionPane.showConfirmDialog(rootPanel, "Пользователь " + user + " хочет начать с вами диалог", "Начать диалог?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    }
+
+    void connectionFailed() {
+        JOptionPane.showMessageDialog(rootPanel, "Возникли неполадки в сети. Проверьте соединение и перезапустите приложение.", "Error", JOptionPane.ERROR_MESSAGE);
+        System.exit(1);
     }
 
     class SendButtonActionListener implements ActionListener {
@@ -121,6 +140,42 @@ public class Chat extends JFrame{
             clearChat();
             setReadMessage("Вы закончили диалог", "System");
             setReadMessage("Выберите пользователя, с которым хотите начать диалог -->", "System");
+        }
+    }
+
+    class ClearChatButtonActionListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            clearChat();
+        }
+    }
+
+    class SendMessageDocumentListener implements DocumentListener {
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            int entered = SendMessage.getText().length();
+            SymbolLeft.setText(Integer.toString(canEntered - entered));
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            int entered = SendMessage.getText().length();
+            SymbolLeft.setText(Integer.toString(canEntered - entered));
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            System.out.println("3");
+        }
+    }
+
+    class SendMessagePlainDocument extends PlainDocument {
+
+        @Override
+        public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException {
+            if (str == null) return;
+            if ((getLength() + str.length()) <= canEntered) super.insertString(offset, str, attr);
         }
     }
 }

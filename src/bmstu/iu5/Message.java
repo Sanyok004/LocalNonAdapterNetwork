@@ -8,8 +8,8 @@ class Message {
     Message(String destName, String message) {
         destinationName = destName;
         this.message = message;
-        lenSrcName = (byte)sourceName.length();
-        lenDestName = (byte)destinationName.length();
+        lenSrcName = (byte)sourceName.getBytes().length;
+        lenDestName = (byte)destinationName.getBytes().length;
         lenMessage = (byte)message.getBytes().length;
 
         sendMessage();

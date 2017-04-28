@@ -14,6 +14,7 @@ public class Main {
     static Map<String, Byte> usersMap = new HashMap<>();
     static Frame buffer;
     static boolean isMain, isMarker;
+    static int time = 10;
 
     public static void main(String[] args) throws InterruptedException {
         GUI gui = new GUI();
@@ -32,6 +33,7 @@ public class Main {
         chat.setReadMessage("Подождите, идет настройка сети...", "System");
 
         if (isMain) {
+            new Timer();
             address = 1;
             buffer = new Frame(Frame.SET_ADDRESS, (byte)-1, address, (byte)2);
             outTerminal.send(new Frame(Frame.MARKER, (byte)-1, (byte)-1));

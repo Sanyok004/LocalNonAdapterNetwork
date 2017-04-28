@@ -82,14 +82,15 @@ class Frame {
 
                 case SET_ADDRESS:
                     if (Main.address == 0) {
+                        new Timer();
                         Main.address = readBuffer[7];
                         byte address = Main.address;
                         Main.buffer = new Frame(typeFrame, destination, Main.address, ++address);
                         Main.outTerminal.send(new Frame(SUCCESS, source, Main.address));
                     } else {
-                        byte[] name = new byte[Main.userName.length() + 1];
+                        byte[] name = new byte[Main.userName.getBytes().length + 1];
                         name[0] = Main.address;
-                        System.arraycopy(Main.userName.getBytes(), 0, name, 1, Main.userName.length());
+                        System.arraycopy(Main.userName.getBytes(), 0, name, 1, Main.userName.getBytes().length);
                         Main.buffer = new Frame(Frame.GET_NAMES, (byte)-1, Main.address, name);
                         Main.outTerminal.send(new Frame(SUCCESS, source, Main.address));
                     }
@@ -99,7 +100,7 @@ class Frame {
                     byte lengthNames = readBuffer[4];
                     if (!Main.isMain) {
                         ArrayList<String> usersList = new ArrayList<>();
-                        byte[] names = new byte[lengthNames + Main.userName.length() + 2];
+                        byte[] names = new byte[lengthNames + Main.userName.getBytes().length + 2];
                         System.arraycopy(readBuffer, 7, names, 0, lengthNames);
 
                         int position = 0;
@@ -118,13 +119,13 @@ class Frame {
 
                         if (usersList.contains(Main.userName)) {
                             new ChangeName(usersList);
-                            names = new byte[lengthNames + Main.userName.length() + 2];
+                            names = new byte[lengthNames + Main.userName.getBytes().length + 2];
                             System.arraycopy(readBuffer, 7, names, 0, lengthNames);
                         }
 
                         names[lengthNames] = -127;
                         names[lengthNames + 1] = Main.address;
-                        System.arraycopy(Main.userName.getBytes(), 0, names, lengthNames + 2, Main.userName.length());
+                        System.arraycopy(Main.userName.getBytes(), 0, names, lengthNames + 2, Main.userName.getBytes().length);
                         Main.buffer = new Frame(typeFrame, destination, Main.address, names);
                         Main.outTerminal.send(new Frame(SUCCESS, source, Main.address));
                     } else {
@@ -281,6 +282,7 @@ class Frame {
                     break;
 
                 case MARKER:
+                    Main.time = 10;
                     if (Main.buffer != null) {
                         Main.isMarker = true;
                         Main.outTerminal.send(Main.buffer);
