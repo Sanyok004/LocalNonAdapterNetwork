@@ -7,7 +7,7 @@ import java.util.TooManyListenersException;
 public class Terminal implements Runnable, SerialPortEventListener {
     private InputStream inputStream;
     private OutputStream outputStream;
-    private SerialPort serialPort;
+    SerialPort serialPort;
     private boolean isOut;
     private Frame frame;
 

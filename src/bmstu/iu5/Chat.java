@@ -82,6 +82,7 @@ public class Chat extends JFrame{
 
     void connectionFailed() {
         JOptionPane.showMessageDialog(rootPanel, "Возникли неполадки в сети. Проверьте соединение и перезапустите приложение.", "Error", JOptionPane.ERROR_MESSAGE);
+        Main.outTerminal.serialPort.close();
         System.exit(1);
     }
 

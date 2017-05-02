@@ -123,7 +123,7 @@
         </constraints>
         <properties>
           <font size="14"/>
-          <text value="80"/>
+          <text value=""/>
         </properties>
       </component>
     </children>
